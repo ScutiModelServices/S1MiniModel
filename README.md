@@ -6,8 +6,14 @@ resolved, punctuation and capitals added, spoken numbers, times and emails writt
 English only. It has the same admin page, tokens, rate limits, metrics, settings and update checks as the other
 model services.
 
-The model runs in this process on the CPU with `transformers` (about 1.5 GB of weights, bfloat16). The service
+By default the model runs in this process on the CPU with `transformers` (about 1.5 GB of weights, bfloat16). Set
+`S1MINI_OLLAMA_URL` to use host Ollama with the official GGUF instead; blank keeps torch. See
+[exact pinned import commands and comparison procedure](docs/ollama.md). The service
 always sends the system prompt the model card requires, word for word, and decodes greedily with thinking off.
+
+Measured on Ryzen 7 7445HS with 6 CPU threads: torch bf16 **9.17 tok/s**, host Ollama F16
+**17.10 tok/s** (1.86×), with identical output on 12 synthetic transcripts. Ollama reports about
+2.0 GB at 4096 context. See [full comparison and limitations](docs/backend-comparison.md).
 
 ## API
 

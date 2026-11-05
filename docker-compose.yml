@@ -14,6 +14,9 @@ services:
       S1MINI_ADMIN_PASSWORD: ${S1MINI_ADMIN_PASSWORD:-}
       S1MINI_NUM_THREAD: ${S1MINI_NUM_THREAD:-}
       S1MINI_REPLICAS: ${S1MINI_REPLICAS:-1}  # shown read-only on /admin/
+      S1MINI_OLLAMA_URL: ${S1MINI_OLLAMA_URL:-}
+      S1MINI_OLLAMA_MODEL: ${S1MINI_OLLAMA_MODEL:-s1-mini:f16}
+    extra_hosts: ["host.docker.internal:host-gateway"]
     volumes:
       - models:/models
       - tokens:/data

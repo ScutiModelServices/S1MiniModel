@@ -1,5 +1,7 @@
 .venv_s1mini/
 .venv/
+.uv-cache/
+.local-models/
 __pycache__/
 *.egg-info/
 .pytest_cache/

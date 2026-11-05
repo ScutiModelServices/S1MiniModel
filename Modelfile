@@ -1,0 +1,7 @@
+# Official Superwhisper S1-mini F16 GGUF at 34add00a48a2e5d24e5a4ee5405a99620a3a240c.
+# Download to .local-models/ first; see docs/ollama.md. The API supplies the exact raw HF prompt.
+FROM ./.local-models/s1-mini-f16.gguf
+PARAMETER temperature 0
+PARAMETER repeat_penalty 1
+PARAMETER num_ctx 4096
+PARAMETER num_gpu 0

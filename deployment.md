@@ -5,6 +5,14 @@ S1MiniModel is one HTTP service (port 9220). It runs as `s1mini` replicas behind
 
 ## Requirements
 
+Host Ollama is an optional CPU backend: import the official pinned F16 GGUF with the tracked
+`Modelfile` using [these exact commands](docs/ollama.md). Set `S1MINI_OLLAMA_URL` to
+`http://host.docker.internal:11434` for Compose, or `http://127.0.0.1:11434` locally, and
+`S1MINI_OLLAMA_MODEL=s1-mini:f16`. Both are restart settings (saved admin values win).
+Blank URL retains torch; the RAM requirements below describe that fallback. With Ollama,
+model memory belongs to the host rather than each API replica. Compose maps the host gateway;
+the Ollama listener must be reachable from containers. No Dockerfile/dependency change is needed.
+
 - Docker with Compose v2.
 - About 2 GB of RAM **per replica** (each replica holds the model).
 - Network access on the first start to download the weights (about 1.5 GB) from Hugging Face.
@@ -49,6 +57,12 @@ docker compose restart s1mini_lb
 The restart is needed because nginx resolves replica addresses once at start.
 
 ## Updating the weights
+
+With Ollama, Check now compares local digests only. Download returns a re-import instruction:
+run `ollama create s1-mini:f16 -f Modelfile` after verifying the pinned GGUF, then restart all
+API replicas to invalidate caches. It does not pull an unverified registry model. The torch
+update behavior below is unchanged. CPU threads apply live on both backends; Ollama receives
+`num_thread` on each chunk. Use physical cores, not logical CPUs.
 
 The **Updates** card compares the downloaded revision of the Hugging Face repository with its newest one. **Download
 new weights** fetches it into the models volume; every replica drops its old copy within a few seconds and loads the

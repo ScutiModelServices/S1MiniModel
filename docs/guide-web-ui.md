@@ -52,6 +52,10 @@ survive `docker compose down` and rebuilds. Without Docker it is `tokens.json` i
 Tokens are enforced only while `S1MINI_ADMIN_PASSWORD` is set.
 
 ## CPU threads
+
+With host Ollama selected, this card sends `num_thread` with the next chunk; it does not
+configure the Ollama server globally. Changes propagate to other API replicas within about
+a second. Use physical cores. Torch behavior below remains the fallback.
 Use the synchronized slider or number field, then **Apply**. Both accept 1 to 256. Apply is disabled and
 shows a busy indicator during saving; a short **Saved** confirmation follows. The page states:
 “Saved to settings.json. Other replicas apply it within a few seconds.”
@@ -99,6 +103,14 @@ When you create a token you can list the projects it may use (comma separated; e
 - **Project models** card: the models loaded for a single project on the replica that answered.
 
 ## Settings
+
+**Host Ollama URL** (`S1MINI_OLLAMA_URL`) and **Ollama model** (`S1MINI_OLLAMA_MODEL`, default
+`s1-mini:f16`) apply after restart. Blank URL selects torch; saved values win over environment
+variables. **Base model** still supplies the matching HF tokenizer for exact chunk counts and
+the fixed non-thinking prompt; **Number format** affects torch only. See
+[Ollama setup](ollama.md) before selecting this backend. The Updates card compares local
+Ollama digests only; Download instructs you to re-import the pinned GGUF and restart all replicas.
+Normalize inputs, sentence streams, 422 validation and answer-cache behavior are unchanged.
 
 The **Settings** card changes options without editing `.env` or restarting: update-check interval, caches and limits, and similar. Each row shows where its value comes from (saved, environment or default). A value saved here beats the environment variable; **Reset** removes it. Every replica reads the shared settings file, so a change applies within a few seconds. Rows marked "applies after a restart" are read once at start. The admin password, ports, replica count and other Docker settings stay in `.env` or the compose file, because the service cannot change its own container.
 
