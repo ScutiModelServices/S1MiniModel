@@ -6,8 +6,14 @@ resolved, punctuation and capitals added, spoken numbers, times and emails writt
 English only. It has the same admin page, tokens, rate limits, metrics, settings and update checks as the other
 model services.
 
-The model runs in this process on the CPU with `transformers` (about 1.5 GB of weights, bfloat16). The service
+By default the model runs in this process on the CPU with `transformers` (about 1.5 GB of weights, bfloat16). Set
+`S1MINI_OLLAMA_URL` to use host Ollama with the official GGUF instead; blank keeps torch. See
+[exact pinned import commands and comparison procedure](docs/ollama.md). The service
 always sends the system prompt the model card requires, word for word, and decodes greedily with thinking off.
+
+Measured on Ryzen 7 7445HS with 6 CPU threads: torch bf16 **9.17 tok/s**, host Ollama F16
+**17.10 tok/s** (1.86×), with identical output on 12 synthetic transcripts. Ollama reports about
+2.0 GB at 4096 context. See [full comparison and limitations](docs/backend-comparison.md).
 
 ## API
 
@@ -77,3 +83,10 @@ uv run pytest
 - A style that drops end punctuation (`casual`) can leave no full stop between two passes of a long text.
 - Licence: Apache 2.0 plus a naming clause. Wherever the model is named it must be "S1-mini" by "Superwhisper". Read
   the `LICENSE` on the Hub before redistributing.
+
+
+## Try it from the admin page
+
+Open `/admin/` and use **Try it** to call the public API with a service token held only in memory. Runs use normal token scopes, limits and caches; the panel shows HTTP status, latency, responses, cancellation and a curl equivalent with a token placeholder. See [the web UI guide](docs/guide-web-ui.md#try-it-send-a-real-request).
+
+Normalize sends transcript text plus styling, structure and context to `POST /v1/normalize`. Streaming appends sentence events as they arrive. This cleans text with S1-mini by Superwhisper; it does not transcribe uploaded audio or act as a general chat model.

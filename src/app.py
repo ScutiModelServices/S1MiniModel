@@ -24,6 +24,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from cache import AnswerCache
 from engine import CONTEXTS, DEFAULT_MODEL, STRUCTURES, STYLINGS, EngineError, S1MiniEngine, default_marker
+from ollama_backend import engine_from_env
 from options import SETTINGS
 import settings
 from tokens import LatencyHistogram, TokenStore
@@ -75,8 +76,11 @@ def create_app(client: S1MiniEngine | None = None, admin_password: str | None = 
     many answers per replica (S1MINI_CACHE_SIZE). `config` (the admin page's settings) replaces `warm`, `check_hours`,
     `max_inflight` and `cache_size` and keeps them live; without it they stay fixed."""
     tokens = tokens or TokenStore(os.environ.get("S1MINI_TOKENS_FILE", "tokens.json"))
-    client = client or S1MiniEngine(config.get("model") if config else os.environ.get("S1MINI_MODEL", DEFAULT_MODEL),
-                                    dtype=config.get("dtype") if config else "bfloat16", marker=default_marker())
+    client = client or engine_from_env(
+        config=config, marker=default_marker(), chunk_tokens=config.get("chunk_tokens") if config else 800
+    ) or S1MiniEngine(
+        config.get("model") if config else os.environ.get("S1MINI_MODEL", DEFAULT_MODEL),
+        dtype=config.get("dtype") if config else "bfloat16", marker=default_marker())
     inflight = 0
     cache = AnswerCache()
 
@@ -93,7 +97,9 @@ def create_app(client: S1MiniEngine | None = None, admin_password: str | None = 
 
     updates = updates or Updates(client.model, cached_sha=lambda: client.cached_sha(), remote_sha=lambda: client.remote_sha(),
                                  download=lambda: client.pull(), unload=lambda: client.unload(),
-                                 description="Looks for newer model weights on the Hugging Face Hub without downloading.",
+                                 description=("Compares local Ollama digests only; re-import the pinned GGUF with ollama create and restart to update."
+                                              if getattr(client, "backend", "torch") == "ollama" else
+                                              "Looks for newer model weights on the Hugging Face Hub without downloading."),
                                  reload_note="Weights downloaded. Every replica drops the old copy within a few seconds and loads the new weights on its next request.")
 
     async def check_forever() -> None:
@@ -372,8 +378,10 @@ def main() -> None:
 
     store = TokenStore(os.environ.get("S1MINI_TOKENS_FILE", "tokens.json"))
     config = settings.Config(store.settings_path, SETTINGS)
-    client = S1MiniEngine(config.get("model"), chunk_tokens=config.get("chunk_tokens"), dtype=config.get("dtype"),
-                          marker=default_marker())
+    client = engine_from_env(
+        config=config, chunk_tokens=config.get("chunk_tokens"), marker=default_marker()
+    ) or S1MiniEngine(config.get("model"), chunk_tokens=config.get("chunk_tokens"),
+                     dtype=config.get("dtype"), marker=default_marker())
     saved = settings.load(store.settings_path)
     threads = saved.get("num_thread") or os.environ.get("S1MINI_NUM_THREAD", "").strip()
     if threads:
