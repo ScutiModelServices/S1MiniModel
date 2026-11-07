@@ -62,10 +62,10 @@ replica restarts.
 ## Run
 
 ```bash
-docker compose up -d --build        # http://<host>:9220
+docker compose up -d --build        # http://<host>:29280
 ```
 
-Without Docker: `run.bat` (uv, listens on `127.0.0.1:9220`). The first start downloads about 1.5 GB. Each replica
+Without Docker: `run.bat` (uv, listens on `127.0.0.1:29280`). The first start downloads about 1.5 GB. Each replica
 holds the model in RAM (about 2 GB), so `S1MINI_REPLICAS` multiplies memory use. See `deployment.md`.
 
 ## Tests

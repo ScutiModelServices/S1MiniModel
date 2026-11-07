@@ -398,7 +398,7 @@ def main() -> None:
         client.num_thread = int(threads)
     app = create_app(client=client, admin_password=os.environ.get("S1MINI_ADMIN_PASSWORD") or None,
                      tokens=store, config=config)
-    uvicorn.run(app, host=os.environ.get("S1MINI_HOST", "127.0.0.1"), port=int(os.environ.get("S1MINI_PORT", "9220")))
+    uvicorn.run(app, host=os.environ.get("S1MINI_HOST", "127.0.0.1"), port=int(os.environ.get("S1MINI_PORT", "29280")))
 
 
 if __name__ == "__main__":

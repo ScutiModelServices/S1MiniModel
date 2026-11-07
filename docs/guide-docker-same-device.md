@@ -15,7 +15,7 @@ Run S1-mini on the CPU in Docker Desktop on the machine you work on, so other pr
    ```bash
    cp .env.example .env
    ```
-   Set `S1MINI_ADMIN_PASSWORD` (empty = no auth and no admin page, fine for a local test). Leave `S1MINI_PORT=9220`. Leave `S1MINI_REPLICAS=1`.
+   Set `S1MINI_ADMIN_PASSWORD` (empty = no auth and no admin page, fine for a local test). Leave `S1MINI_PORT=29280`. Leave `S1MINI_REPLICAS=1`.
 2. Start:
    ```bash
    docker compose up -d --build
@@ -24,18 +24,18 @@ Run S1-mini on the CPU in Docker Desktop on the machine you work on, so other pr
    (up to 300 s grace). Watch with `docker compose ps` and `docker compose logs -f stc_s1mini_model`.
 3. Check:
    ```bash
-   curl http://127.0.0.1:9220/health
+   curl http://127.0.0.1:29280/health
    ```
    `ready` is `false` until the model has loaded, then `true`.
-4. Open the admin page: `http://127.0.0.1:9220/admin/` (see [guide-web-ui.md](guide-web-ui.md)) and make a token for each caller.
+4. Open the admin page: `http://127.0.0.1:29280/admin/` (see [guide-web-ui.md](guide-web-ui.md)) and make a token for each caller.
 5. Try a call:
    ```bash
-   curl -X POST http://127.0.0.1:9220/v1/normalize -H "Content-Type: application/json" -H "X-Internal-Token: s1mini_..." -d '{"text":"so um i need to like send the report by uh friday no wait thursday"}'
+   curl -X POST http://127.0.0.1:29280/v1/normalize -H "Content-Type: application/json" -H "X-Internal-Token: s1mini_..." -d '{"text":"so um i need to like send the report by uh friday no wait thursday"}'
    ```
    Expect a JSON answer.
 6. Callers connect to the published port. The caller holds the URL and token:
-   - Caller on the host: `http://127.0.0.1:9220`.
-   - Caller in another Docker stack on the same host: `http://host.docker.internal:9220`.
+   - Caller on the host: `http://127.0.0.1:29280`.
+   - Caller in another Docker stack on the same host: `http://host.docker.internal:29280`.
 
 ## Settings
 
@@ -45,7 +45,7 @@ In `.env` next to `docker-compose.yml`:
 |---|---|---|
 | `S1MINI_REPLICAS` | `1` | Number of `stc_s1mini_model` containers. Read by Compose. |
 | `S1MINI_MEM_LIMIT` | `0` (no cap) | RAM cap per container, for example `3g` (bfloat16 weights use about 1.4 GiB). An out-of-memory kill then stays in the container instead of starving the host. Read by Compose. |
-| `S1MINI_PORT` | `9220` | Host port `stc_s1mini_model_lb` publishes. |
+| `S1MINI_PORT` | `29280` | Host port `stc_s1mini_model_lb` publishes. |
 | `S1MINI_ADMIN_PASSWORD` | empty | Password for `/admin/`. When set, every call except `/health` must send a token as `X-Internal-Token`. Empty = no auth. |
 | `S1MINI_NUM_THREAD` | torch decides | Starting value for the CPU threads card; a value saved on `/admin/` wins. Use the number of physical cores (`lscpu`: cores x sockets), not logical CPUs; more threads than cores slows every call. |
 
@@ -68,7 +68,7 @@ docker compose up -d --build && docker compose restart stc_s1mini_model_lb   # a
 
 | Symptom | Fix |
 |---|---|
-| `address already in use` on 9220 | Another copy (`run.bat`, or the same stack on another compose project) is running. Stop it or change `S1MINI_PORT`. |
+| `address already in use` on 29280 | Another copy (`run.bat`, or the same stack on another compose project) is running. Stop it or change `S1MINI_PORT`. |
 | `/health` shows `ready: false` for minutes | First start: the weights are downloading or loading. Check `docker compose logs -f stc_s1mini_model`. |
 | 401 Invalid token | The caller's token is missing or revoked; make one on `/admin/`. |
 | Container restarts in a loop | Out of RAM. Raise the Docker Desktop memory limit or lower the replica count. |
@@ -79,4 +79,4 @@ docker compose up -d --build && docker compose restart stc_s1mini_model_lb   # a
 | Slow answers | CPU speed with `transformers` is modest for any model of this size; use a 4-bit GGUF runtime if speed matters. Raise CPU threads on `/admin/`. |
 | nginx 502 after scaling | `stc_s1mini_model_lb` not restarted after the replica count changed. |
 
-The load balancer also joins external `citadel_core` as `stc_s1mini_model_lb`. Start the Citadel stack first so that network exists; tool services on it use `http://stc_s1mini_model_lb:9220`. Docker project and API image are `stc_s1mini_model` and `stc_s1mini_model:latest`; persistent volumes have explicit `stc_s1mini_model_*` names. Volume migration and rollback instructions are in [CHANGELOG.md](../CHANGELOG.md).
+The load balancer also joins external `citadel_core` as `stc_s1mini_model_lb`. Start the Citadel stack first so that network exists; tool services on it use `http://stc_s1mini_model_lb:29280`. Docker project and API image are `stc_s1mini_model` and `stc_s1mini_model:latest`; persistent volumes have explicit `stc_s1mini_model_*` names. Volume migration and rollback instructions are in [CHANGELOG.md](../CHANGELOG.md).

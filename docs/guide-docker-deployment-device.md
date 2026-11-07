@@ -34,7 +34,7 @@ cd /media/ZimaOS-HD/Apps/STC_S1Mini_Model
 Create `.env` (deploy option 2 copies yours, or `cp .env.example .env` and edit):
 - `S1MINI_ADMIN_PASSWORD`: a real password.
 - `S1MINI_REPLICAS=1` unless you have the memory for more.
-- `S1MINI_PORT=9220` (published on all interfaces; firewall it if the LAN should not reach it, or bind it to
+- `S1MINI_PORT=29280` (published on all interfaces; firewall it if the LAN should not reach it, or bind it to
   `127.0.0.1` in the `ports:` line of `stc_s1mini_model_lb` when only callers on the machine need it).
 
 ## 3. Start
@@ -42,21 +42,21 @@ Create `.env` (deploy option 2 copies yours, or `cp .env.example .env` and edit)
 ```bash
 docker compose up -d --build
 docker compose ps
-curl http://127.0.0.1:9220/health
+curl http://127.0.0.1:29280/health
 ```
 The first start downloads about 1.5 GB of weights into the `stc_s1mini_model_models` volume; `stc_s1mini_model_lb` waits for a healthy service
 (up to 300 s grace).
 
 ## 4. Connect callers
 
-1. Open `http://<machine-ip>:9220/admin/`, sign in with the admin password and create one token per caller
+1. Open `http://<machine-ip>:29280/admin/`, sign in with the admin password and create one token per caller
    (see [guide-web-ui.md](guide-web-ui.md)).
 2. The caller holds the URL and token:
-   - Caller on another machine: `http://<machine-ip>:9220`.
-   - Caller in a Docker stack on the same machine: `http://host.docker.internal:9220`.
+   - Caller on another machine: `http://<machine-ip>:29280`.
+   - Caller in a Docker stack on the same machine: `http://host.docker.internal:29280`.
 3. Try a call from the machine:
    ```bash
-   curl -X POST http://127.0.0.1:9220/v1/normalize -H "Content-Type: application/json" -H "X-Internal-Token: s1mini_..." -d '{"text":"so um i need to like send the report by uh friday no wait thursday"}'
+   curl -X POST http://127.0.0.1:29280/v1/normalize -H "Content-Type: application/json" -H "X-Internal-Token: s1mini_..." -d '{"text":"so um i need to like send the report by uh friday no wait thursday"}'
    ```
 
 ## Scaling
@@ -87,7 +87,7 @@ A plain publish (`run.bat`, Deploy, option 1) only updates the `live` branch. Fo
 
 | Symptom | Fix |
 |---|---|
-| Caller cannot reach the service | Check the caller's URL and token, and that `curl http://<machine-ip>:9220/health` works. |
+| Caller cannot reach the service | Check the caller's URL and token, and that `curl http://<machine-ip>:29280/health` works. |
 | nginx 502 after an update | `docker compose restart stc_s1mini_model_lb`. |
 | Permission denied on push | run.bat Deploy option 6. |
-| Port 9220 in use | Another stack on the machine already publishes it. |
+| Port 29280 in use | Another stack on the machine already publishes it. |
