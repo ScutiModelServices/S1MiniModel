@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Admin page: **Connect to this service** card with the addresses other services can use (this page's address, same PC, Docker network, `host.docker.internal`) and every endpoint, each with a Copy button.
 - Optional host Ollama backend (`S1MINI_OLLAMA_URL`, `S1MINI_OLLAMA_MODEL`) with torch fallback.
   Imports official pinned S1-mini by Superwhisper F16 GGUF using `Modelfile`; no conversion needed.
   Keeps exact HF-rendered non-thinking prompt, greedy decoding, token-based sentence chunking,
