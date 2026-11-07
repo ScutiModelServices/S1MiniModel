@@ -1,4 +1,4 @@
-# S1MiniModel
+# STC_S1Mini_Model
 
 The one place S1-mini is served. S1-mini is a 0.6B text normalizer for speech-to-text output (Qwen3 fine-tune by
 Superwhisper). Projects send it a raw transcript over HTTP and get clean text back: fillers removed, self-corrections
