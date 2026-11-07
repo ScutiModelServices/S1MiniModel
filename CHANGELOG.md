@@ -2,6 +2,32 @@
 
 ## Unreleased
 
+### Breaking: common service environment variables
+
+Service-owned environment variables now use `SERVICE_*`. Old names are no longer read.
+Rename old names once in your real `.env`, Compose `environment:` block, and CI/secret settings.
+
+| Old name | New name |
+|---|---|
+| `S1MINI_ADMIN_PASSWORD` | `SERVICE_ADMIN_PASSWORD` |
+| `S1MINI_CACHE_SIZE` | `SERVICE_CACHE_SIZE` |
+| `S1MINI_CHUNK_TOKENS` | `SERVICE_CHUNK_TOKENS` |
+| `S1MINI_DTYPE` | `SERVICE_DTYPE` |
+| `S1MINI_HOST` | `SERVICE_HOST` |
+| `S1MINI_MAX_INFLIGHT` | `SERVICE_MAX_INFLIGHT` |
+| `S1MINI_MEM_LIMIT` | `SERVICE_MEM_LIMIT` |
+| `S1MINI_MODEL` | `SERVICE_MODEL` |
+| `S1MINI_NUM_THREAD` | `SERVICE_NUM_THREAD` |
+| `S1MINI_OLLAMA_MODEL` | `SERVICE_OLLAMA_MODEL` |
+| `S1MINI_OLLAMA_URL` | `SERVICE_OLLAMA_URL` |
+| `S1MINI_PORT` | `SERVICE_PORT` |
+| `S1MINI_REPLICAS` | `SERVICE_REPLICAS` |
+| `S1MINI_TOKENS_FILE` | `SERVICE_TOKENS_FILE` |
+| `S1MINI_UPDATE_CHECK_HOURS` | `SERVICE_UPDATE_CHECK_HOURS` |
+| `S1MINI_WARM` | `SERVICE_WARM` |
+| `S1MINI_WEB_DIR` | `SERVICE_WEB_DIR` |
+| `S1MINI_WEIGHTS_MARKER` | `SERVICE_WEIGHTS_MARKER` |
+
 - Move the default service port from 9220 to 29280, including API replicas and the nginx load balancer. Update any explicit old port in your real `.env`, saved tool-service `backends.json` connections, and browser or MCP client configuration once. With Compose defaults, recreate the stack to use the new host and container ports; a custom host-port override stays as configured, while container ports still change to 29280.
 
 - Renamed `S1MiniModel` to `STC_S1Mini_Model`; Docker project, API image, services, load balancer and volumes now use `stc_s1mini_model` names. Callers on `citadel_core` connect to `stc_s1mini_model_lb` at the existing port.
@@ -14,7 +40,7 @@
 - Untracked folders now start with `.` or `_`: `zip_versions/` is `_zip_versions/`. A local `voices`, `tem_code` or `zip_versions` folder from an older checkout needs renaming by hand.
 - `run.bat` is now a menu (run the service, deploy, build the release ZIP) and `run.bat run|deploy|zip` skips it. `tools/deploy.bat`, `tools/make_zip.bat` and `tools/deploy.local.example.bat` are gone; the local deploy target is `tools/deploy.local.ini` (copy `tools/deploy.local.example.ini`).
 - Admin page: **Connect to this service** card with the addresses other services can use (this page's address, same PC, Docker network, `host.docker.internal`) and every endpoint, each with a Copy button.
-- Optional host Ollama backend (`S1MINI_OLLAMA_URL`, `S1MINI_OLLAMA_MODEL`) with torch fallback.
+- Optional host Ollama backend (`SERVICE_OLLAMA_URL`, `SERVICE_OLLAMA_MODEL`) with torch fallback.
   Imports official pinned S1-mini by Superwhisper F16 GGUF using `Modelfile`; no conversion needed.
   Keeps exact HF-rendered non-thinking prompt, greedy decoding, token-based sentence chunking,
   sentence streaming, cache and 422 rules. CPU threads apply to each Ollama chunk. Transport errors
@@ -31,4 +57,4 @@
   shared with the other model services.
 - `POST /v1/normalize` takes `text`, `styling`, `structure`, `context` and `stream`. `stream: true` sends one JSON line
   per sentence, then `done`.
-- Long input is cut at sentence ends into passes of `S1MINI_CHUNK_TOKENS` tokens (default 800).
+- Long input is cut at sentence ends into passes of `SERVICE_CHUNK_TOKENS` tokens (default 800).

@@ -6,7 +6,7 @@ Run S1-mini on the CPU on a separate always-on machine (default `lex@scutiserver
 ## Requirements on the machine
 
 - Docker + Compose v2, and ssh access (root over ssh is refused; use the normal user).
-- Enough RAM for the model times `S1MINI_REPLICAS`.
+- Enough RAM for the model times `SERVICE_REPLICAS`.
 
 ## 1. Publish the code (from your PC)
 
@@ -32,9 +32,9 @@ git clone -b live <your-repo-url> /media/ZimaOS-HD/Apps/STC_S1Mini_Model
 cd /media/ZimaOS-HD/Apps/STC_S1Mini_Model
 ```
 Create `.env` (deploy option 2 copies yours, or `cp .env.example .env` and edit):
-- `S1MINI_ADMIN_PASSWORD`: a real password.
-- `S1MINI_REPLICAS=1` unless you have the memory for more.
-- `S1MINI_PORT=29280` (published on all interfaces; firewall it if the LAN should not reach it, or bind it to
+- `SERVICE_ADMIN_PASSWORD`: a real password.
+- `SERVICE_REPLICAS=1` unless you have the memory for more.
+- `SERVICE_PORT=29280` (published on all interfaces; firewall it if the LAN should not reach it, or bind it to
   `127.0.0.1` in the `ports:` line of `stc_s1mini_model_lb` when only callers on the machine need it).
 
 ## 3. Start
@@ -62,7 +62,7 @@ The first start downloads about 1.5 GB of weights into the `stc_s1mini_model_mod
 ## Scaling
 
 ```bash
-S1MINI_REPLICAS=3 docker compose up -d --build
+SERVICE_REPLICAS=3 docker compose up -d --build
 docker compose restart stc_s1mini_model_lb
 ```
 

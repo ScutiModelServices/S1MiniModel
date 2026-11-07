@@ -24,7 +24,7 @@ ollama show s1-mini:f16
 Expected F16 SHA-256:
 `0370da4f1bae19e3150bcafa33c5d396c15f97bf25519540a3e013db5cc00af4`.
 The default Ollama tokenizer is pinned to the HF baseline revision above; a custom
-`S1MINI_MODEL` source must supply the tokenizer matching its imported GGUF.
+`SERVICE_MODEL` source must supply the tokenizer matching its imported GGUF.
 
 Ollama must already be running on the host. The tracked `Modelfile` imports the local file,
 sets greedy decoding and disables GPU offload. The API also sends `temperature: 0`,
@@ -41,17 +41,17 @@ budget, so a sentence longer than the chunk limit is still sent whole.
 For a local service, use `.env` in this folder (`run.bat` passes `--dotenv`; a plain `python src/app.py` does not read it) or real environment variables (a real variable wins):
 
 ```powershell
-$env:S1MINI_OLLAMA_URL = 'http://127.0.0.1:11434'
-$env:S1MINI_OLLAMA_MODEL = 's1-mini:f16'
-$env:S1MINI_NUM_THREAD = '6' # Use your host's physical core count.
+$env:SERVICE_OLLAMA_URL = 'http://127.0.0.1:11434'
+$env:SERVICE_OLLAMA_MODEL = 's1-mini:f16'
+$env:SERVICE_NUM_THREAD = '6' # Use your host's physical core count.
 uv run src/app.py
 ```
 
-For Compose set `S1MINI_OLLAMA_URL=http://host.docker.internal:11434` and
-`S1MINI_OLLAMA_MODEL=s1-mini:f16` in its environment file. Compose includes the Linux
+For Compose set `SERVICE_OLLAMA_URL=http://host.docker.internal:11434` and
+`SERVICE_OLLAMA_MODEL=s1-mini:f16` in its environment file. Compose includes the Linux
 `host-gateway` mapping. Configure the host Ollama listener to allow the container to reach
 it; keep port 11434 on a trusted network. The service still needs the matching HF tokenizer
-(small download; `S1MINI_MODEL` selects its source), but does not load torch weights.
+(small download; `SERVICE_MODEL` selects its source), but does not load torch weights.
 Clear the URL and restart to return to torch. A saved URL/model setting takes precedence
 over the environment; reset the saved setting too when switching back.
 

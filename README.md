@@ -7,7 +7,7 @@ English only. It has the same admin page, tokens, rate limits, metrics, settings
 model services.
 
 By default the model runs in this process on the CPU with `transformers` (about 1.5 GB of weights, bfloat16). Set
-`S1MINI_OLLAMA_URL` to use host Ollama with the official GGUF instead; blank keeps torch. See
+`SERVICE_OLLAMA_URL` to use host Ollama with the official GGUF instead; blank keeps torch. See
 [exact pinned import commands and comparison procedure](docs/ollama.md). The service
 always sends the system prompt the model card requires, word for word, and decodes greedily with thinking off.
 
@@ -31,7 +31,7 @@ Example: `so um i need to like send the the report by uh friday no wait make tha
 
 An empty `content` is a valid result (a transcript that holds only fillers).
 
-**Long text.** Input is cut at sentence ends into passes of at most *Input tokens per pass* (`S1MINI_CHUNK_TOKENS`,
+**Long text.** Input is cut at sentence ends into passes of at most *Input tokens per pass* (`SERVICE_CHUNK_TOKENS`,
 default 800; the model card advises under about 1000) and each pass is normalized on its own. One sentence longer than
 the limit is sent whole. Output joins with a space (a newline for `lists`).
 
@@ -42,7 +42,7 @@ follows it, so joining the pieces gives the answer. The first sentence arrives w
 refusal before the first sentence (a full queue) is a normal HTTP error; a failure after it is sent as
 `{"type": "error", "status", ...}` and ends the stream. A kept answer (see below) is streamed back sentence by sentence.
 
-**Cache.** *Answers kept per replica* (`S1MINI_CACHE_SIZE`, default 256, 0 = off) keeps the last answers for identical
+**Cache.** *Answers kept per replica* (`SERVICE_CACHE_SIZE`, default 256, 0 = off) keeps the last answers for identical
 requests and sends them again without generating (`X-Cache: hit`). Decoding is always greedy, so every request is
 kept. New weights empty the cache. The cache is per replica, so with N replicas the hit rate is about 1/N. `stream`
 does not change the key.
@@ -51,7 +51,7 @@ does not change the key.
 
 ## Admin page
 
-`/admin/` (password `S1MINI_ADMIN_PASSWORD`): tokens with rate limit and expiry, usage numbers, CPU threads, the
+`/admin/` (password `SERVICE_ADMIN_PASSWORD`): tokens with rate limit and expiry, usage numbers, CPU threads, the
 Settings card (update check hours, in-flight cap, answers kept, input tokens per pass), and the Updates card
 (**Check now** and **Download new weights** for the Hugging Face repository). New weights are downloaded once into
 the shared models volume; the other replicas notice within a few seconds and load them on their next request.
@@ -66,7 +66,7 @@ docker compose up -d --build        # http://<host>:29280
 ```
 
 Without Docker: `run.bat` (uv, listens on `127.0.0.1:29280`). The first start downloads about 1.5 GB. Each replica
-holds the model in RAM (about 2 GB), so `S1MINI_REPLICAS` multiplies memory use. See `deployment.md`.
+holds the model in RAM (about 2 GB), so `SERVICE_REPLICAS` multiplies memory use. See `deployment.md`.
 
 ## Tests
 

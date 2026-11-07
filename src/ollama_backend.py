@@ -117,7 +117,7 @@ class OllamaLoaded:
 def engine_from_env(*, config: Any = None, **options: Any) -> S1MiniEngine | None:
     """URL opt-in like LFM3; saved startup settings win over environment values."""
     def value(name: str, default: str) -> str:
-        return str(config.get(name) if config else os.environ.get(f"S1MINI_{name.upper()}", default)).strip()
+        return str(config.get(name) if config else os.environ.get(f"SERVICE_{name.upper()}", default)).strip()
 
     url = value("ollama_url", "").rstrip("/")
     if not url:

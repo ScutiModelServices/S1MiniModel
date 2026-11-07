@@ -158,8 +158,8 @@ def test_warmup_body_read_failure_is_engine_error(monkeypatch):
 
 
 def test_saved_backend_settings_win_over_environment(server, tmp_path, monkeypatch):
-    monkeypatch.setenv("S1MINI_OLLAMA_URL", "http://127.0.0.1:1")
-    monkeypatch.setenv("S1MINI_OLLAMA_MODEL", "wrong")
+    monkeypatch.setenv("SERVICE_OLLAMA_URL", "http://127.0.0.1:1")
+    monkeypatch.setenv("SERVICE_OLLAMA_MODEL", "wrong")
     config = Config(tmp_path / "test-config.json", SETTINGS)
     config.set({"ollama_url": server[0], "ollama_model": "m"})
     monkeypatch.setattr("ollama_backend.load_tokenizer", lambda source: Tokenizer())
@@ -172,10 +172,10 @@ def test_saved_backend_settings_win_over_environment(server, tmp_path, monkeypat
 
 def test_engine_wiring_multichunk_stream_cache_422_and_updates(server, monkeypatch):
     url, seen = server
-    monkeypatch.delenv("S1MINI_OLLAMA_URL", raising=False)
+    monkeypatch.delenv("SERVICE_OLLAMA_URL", raising=False)
     assert engine_from_env() is None
-    monkeypatch.setenv("S1MINI_OLLAMA_URL", url)
-    monkeypatch.setenv("S1MINI_OLLAMA_MODEL", "m")
+    monkeypatch.setenv("SERVICE_OLLAMA_URL", url)
+    monkeypatch.setenv("SERVICE_OLLAMA_MODEL", "m")
     monkeypatch.setattr("ollama_backend.load_tokenizer", lambda source: Tokenizer())
     engine = engine_from_env(chunk_tokens=2)
     assert isinstance(engine, S1MiniEngine)

@@ -1,6 +1,6 @@
 # STC_S1Mini_Model
 
-Superwhisper S1-mini (0.6B speech-to-text normalizer, Qwen3) served over HTTP, behind the shared model-service admin page, tokens and settings. Port 29280, env prefix `S1MINI_`, token prefix `s1mini_`.
+Superwhisper S1-mini (0.6B speech-to-text normalizer, Qwen3) served over HTTP, behind the shared model-service admin page, tokens and settings. Port 29280, env prefix `SERVICE_`, token prefix `s1mini_`.
 
 ## Agent instructions
 This file is the one instruction file for every coding agent; `CLAUDE.md` only imports it (`@AGENTS.md`). Edit this file, never `CLAUDE.md`.

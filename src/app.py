@@ -70,16 +70,16 @@ def create_app(client: S1MiniEngine | None = None, admin_password: str | None = 
                tokens: TokenStore | None = None, warm: bool = False,
                updates: Updates | None = None, check_hours: float = 0, max_inflight: int | None = None,
                cache_size: int | None = None, config: settings.Config | None = None) -> FastAPI:
-    """`admin_password` (S1MINI_ADMIN_PASSWORD) unlocks /admin/, where each project gets a token of its own; when it
+    """`admin_password` (SERVICE_ADMIN_PASSWORD) unlocks /admin/, where each project gets a token of its own; when it
     is set, every call except /health must send one of those tokens in the X-Internal-Token header. Unset = no
-    auth at all (local use only). `tokens` holds the project tokens (S1MINI_TOKENS_FILE). `cache_size` > 0 keeps that
-    many answers per replica (S1MINI_CACHE_SIZE). `config` (the admin page's settings) replaces `warm`, `check_hours`,
+    auth at all (local use only). `tokens` holds the project tokens (SERVICE_TOKENS_FILE). `cache_size` > 0 keeps that
+    many answers per replica (SERVICE_CACHE_SIZE). `config` (the admin page's settings) replaces `warm`, `check_hours`,
     `max_inflight` and `cache_size` and keeps them live; without it they stay fixed."""
-    tokens = tokens or TokenStore(os.environ.get("S1MINI_TOKENS_FILE", "tokens.json"))
+    tokens = tokens or TokenStore(os.environ.get("SERVICE_TOKENS_FILE", "tokens.json"))
     client = client or engine_from_env(
         config=config, marker=default_marker(), chunk_tokens=config.get("chunk_tokens") if config else 800
     ) or S1MiniEngine(
-        config.get("model") if config else os.environ.get("S1MINI_MODEL", DEFAULT_MODEL),
+        config.get("model") if config else os.environ.get("SERVICE_MODEL", DEFAULT_MODEL),
         dtype=config.get("dtype") if config else "bfloat16", marker=default_marker())
     inflight = 0
     cache = AnswerCache()
@@ -87,12 +87,12 @@ def create_app(client: S1MiniEngine | None = None, admin_password: str | None = 
     def cache_limit() -> int:
         """Answers this replica keeps; 0 = off."""
         return config.get("cache_size") if config else (
-            cache_size if cache_size is not None else int(os.environ.get("S1MINI_CACHE_SIZE") or 0))
+            cache_size if cache_size is not None else int(os.environ.get("SERVICE_CACHE_SIZE") or 0))
 
     def inflight_limit() -> int:
         """Calls this replica lets wait for the model at once; more get 429. 0 = 4."""
         value = config.get("max_inflight") if config else (
-            max_inflight if max_inflight is not None else int(os.environ.get("S1MINI_MAX_INFLIGHT") or 0))
+            max_inflight if max_inflight is not None else int(os.environ.get("SERVICE_MAX_INFLIGHT") or 0))
         return value or 4
 
     updates = updates or Updates(client.model, cached_sha=lambda: client.cached_sha(), remote_sha=lambda: client.remote_sha(),
@@ -169,7 +169,7 @@ def create_app(client: S1MiniEngine | None = None, admin_password: str | None = 
 
     def admin(x_internal_token: str = Header("")) -> None:
         if not admin_password or not hmac.compare_digest(x_internal_token, admin_password):
-            raise HTTPException(401, "Admin password required (set S1MINI_ADMIN_PASSWORD)")
+            raise HTTPException(401, "Admin password required (set SERVICE_ADMIN_PASSWORD)")
 
     app = FastAPI(title="S1-mini service", lifespan=lifespan)
 
@@ -281,7 +281,7 @@ def create_app(client: S1MiniEngine | None = None, admin_password: str | None = 
 
     @app.put("/admin/threads", dependencies=[Depends(admin)])
     def set_threads(body: Threads) -> dict[str, Any]:
-        """Applies to this replica now and is saved; the other replicas apply it within a few seconds. It beats S1MINI_NUM_THREAD."""
+        """Applies to this replica now and is saved; the other replicas apply it within a few seconds. It beats SERVICE_NUM_THREAD."""
         client.num_thread = body.num_thread
         settings.save(tokens.settings_path, num_thread=body.num_thread)
         return {"num_thread": client.num_thread}
@@ -293,7 +293,7 @@ def create_app(client: S1MiniEngine | None = None, admin_password: str | None = 
             value = os.environ.get(name, "").strip()
             return int(value) if value.isdigit() else None
 
-        return {"replicas": number("S1MINI_REPLICAS"), "parallel": 1}
+        return {"replicas": number("SERVICE_REPLICAS"), "parallel": 1}
 
     @app.get("/admin/updates", dependencies=[Depends(admin)])
     async def update_status() -> dict[str, Any]:
@@ -366,7 +366,7 @@ def create_app(client: S1MiniEngine | None = None, admin_password: str | None = 
             raise HTTPException(404, "No such token")
         return {"ok": True}
 
-    web = Path(os.environ.get("S1MINI_WEB_DIR", Path(__file__).resolve().parents[1] / "web"))
+    web = Path(os.environ.get("SERVICE_WEB_DIR", Path(__file__).resolve().parents[1] / "web"))
     if web.is_dir():
         app.mount("/admin", StaticFiles(directory=web, html=True))
 
@@ -386,19 +386,19 @@ def main() -> None:
         else:
             print(".env: no file in the service folder", flush=True)
 
-    store = TokenStore(os.environ.get("S1MINI_TOKENS_FILE", "tokens.json"))
+    store = TokenStore(os.environ.get("SERVICE_TOKENS_FILE", "tokens.json"))
     config = settings.Config(store.settings_path, SETTINGS)
     client = engine_from_env(
         config=config, chunk_tokens=config.get("chunk_tokens"), marker=default_marker()
     ) or S1MiniEngine(config.get("model"), chunk_tokens=config.get("chunk_tokens"),
                      dtype=config.get("dtype"), marker=default_marker())
     saved = settings.load(store.settings_path)
-    threads = saved.get("num_thread") or os.environ.get("S1MINI_NUM_THREAD", "").strip()
+    threads = saved.get("num_thread") or os.environ.get("SERVICE_NUM_THREAD", "").strip()
     if threads:
         client.num_thread = int(threads)
-    app = create_app(client=client, admin_password=os.environ.get("S1MINI_ADMIN_PASSWORD") or None,
+    app = create_app(client=client, admin_password=os.environ.get("SERVICE_ADMIN_PASSWORD") or None,
                      tokens=store, config=config)
-    uvicorn.run(app, host=os.environ.get("S1MINI_HOST", "127.0.0.1"), port=int(os.environ.get("S1MINI_PORT", "29280")))
+    uvicorn.run(app, host=os.environ.get("SERVICE_HOST", "127.0.0.1"), port=int(os.environ.get("SERVICE_PORT", "29280")))
 
 
 if __name__ == "__main__":
