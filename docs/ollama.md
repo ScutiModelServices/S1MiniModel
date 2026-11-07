@@ -38,7 +38,7 @@ Context starts at 4096 tokens to avoid reserving the full 40,960-token window fo
 transcripts. Each chunk reserves at least its exact rendered prompt count plus its output
 budget, so a sentence longer than the chunk limit is still sent whole.
 
-For a local service, use `.env` in this folder or real environment variables (the service loads `.env`; a real variable wins):
+For a local service, use `.env` in this folder (`run.bat` passes `--dotenv`; a plain `python src/app.py` does not read it) or real environment variables (a real variable wins):
 
 ```powershell
 $env:S1MINI_OLLAMA_URL = 'http://127.0.0.1:11434'
