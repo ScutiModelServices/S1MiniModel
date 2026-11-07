@@ -11,6 +11,7 @@ on the same device, Docker on a deployment device, no Docker). Only the address 
 If `S1MINI_PORT` is changed, use that port.
 
 ## Before you open it
+
 The page needs the admin password: the value of `S1MINI_ADMIN_PASSWORD`.
 - Docker: set it in `.env` next to `docker-compose.yml`, then `docker compose up -d`.
 - No Docker: set it in the environment before starting the service (`run.bat` / `uvicorn`); the service reads the
@@ -19,6 +20,7 @@ The page needs the admin password: the value of `S1MINI_ADMIN_PASSWORD`.
   one to use the page.
 
 ## Sign in and service status
+
 Type the admin password and press **Sign in**. A wrong password shows an inline `Wrong admin password` error.
 The password stays in `sessionStorage` for this browser tab, so reloading restores the session. **Sign out** clears
 the password and any freshly created token. If browser storage is blocked, sign in again after reloading.
@@ -29,6 +31,7 @@ is not loaded yet (the first start downloads it). Tiles show model readiness, re
 Use **Theme** to cycle between system, light, and dark appearance; this preference is saved in the browser.
 
 ## Tokens
+
 Each calling project gets its own token, so one can be revoked without touching the others.
 - **Create:** type a project name (up to 64 characters) and press **Create token**. The token appears once in
   an accent-tinted box with a **Copy** button and the reminder “Shown once. Copy it before you leave.”
@@ -68,6 +71,7 @@ shows a busy indicator during saving; a short **Saved** confirmation follows. Th
   to the `.env` value.
 
 ## Replicas and parallel requests (read-only)
+
 The tiles show replicas and parallel generations from `S1MINI_REPLICAS`; each replica runs one generation at a time.
 The muted line says **Replicas: N. Change S1MINI_REPLICAS in .env, then rebuild.** The
 page cannot change them. To change, set them in `.env`, then:
@@ -78,6 +82,7 @@ docker compose restart s1mini_lb
 `unknown` means the variable is not set, which is normal without Docker. Without Docker there is one process.
 
 ## Problems
+
 | Symptom | Fix |
 |---|---|
 | Page does not load | Service not running, wrong port, or blocked by a firewall. Test `/health`. |
@@ -113,6 +118,19 @@ Ollama digests only; Download instructs you to re-import the pinned GGUF and res
 Normalize inputs, sentence streams, 422 validation and answer-cache behavior are unchanged.
 
 The **Settings** card changes options without editing `.env` or restarting: update-check interval, caches and limits, and similar. Each row shows where its value comes from (saved, environment or default). A value saved here beats the environment variable; **Reset** removes it. Every replica reads the shared settings file, so a change applies within a few seconds. Rows marked "applies after a restart" are read once at start. The admin password, ports, replica count and other Docker settings stay in `.env` or the compose file, because the service cannot change its own container.
+
+## Updating the model files
+
+With Ollama, Check now compares local digests only. Download returns a re-import instruction:
+run `ollama create s1-mini:f16 -f Modelfile` after verifying the pinned GGUF, then restart all
+API replicas to invalidate caches. It does not pull an unverified registry model. The torch
+update behavior below is unchanged. CPU threads apply live on both backends; Ollama receives
+`num_thread` on each chunk. Use physical cores, not logical CPUs.
+
+The **Updates** card compares the downloaded revision of the Hugging Face repository with its newest one. **Download
+new weights** fetches it into the models volume; every replica drops its old copy within a few seconds and loads the
+new one on its next request (it needs RAM for both for a moment). The download is the repository's current `main`.
+Updating the service itself: `docker compose up -d --build`, then `docker compose restart s1mini_lb`.
 
 ## Connect to this service
 

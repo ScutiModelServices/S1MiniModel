@@ -84,9 +84,17 @@ uv run pytest
 - Licence: Apache 2.0 plus a naming clause. Wherever the model is named it must be "S1-mini" by "Superwhisper". Read
   the `LICENSE` on the Hub before redistributing.
 
-
 ## Try it from the admin page
 
 Open `/admin/` and use **Try it** to call the public API with a service token held only in memory. Runs use normal token scopes, limits and caches; the panel shows HTTP status, latency, responses, cancellation and a curl equivalent with a token placeholder. See [the web UI guide](docs/guide-web-ui.md#try-it-send-a-real-request).
 
 Normalize sends transcript text plus styling, structure and context to `POST /v1/normalize`. Streaming appends sentence events as they arrive. This cleans text with S1-mini by Superwhisper; it does not transcribe uploaded audio or act as a general chat model.
+
+## Documentation
+
+- [Purpose: input, output and what it is for](docs/purpose.md)
+- [Deployment](deployment.md)
+- [Changelog](CHANGELOG.md)
+- [Docker on another machine](docs/guide-docker-deployment-device.md)
+- [Docker on this PC](docs/guide-docker-same-device.md)
+- [Run without Docker](docs/guide-no-docker-same-device.md)
